@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="./manifest.json?v=20260919-chemical-1">
+  <link rel="manifest" href="./manifest.json?v=20260917-8">
   <link rel="icon" type="image/png" sizes="32x32" href="./shambhu-shed-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./shambhu-shed-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./shambhu-shed-180.png">
@@ -420,32 +420,10 @@ body.dashboard-open .final-quick-row{display:none!important}
 .mo-select-btn{display:none!important}
 </style>
 
-<style>
-/* ===== CHEMICAL REGISTER / MONTHLY REPORT ===== */
-.chem-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:12px}
-.chem-form,.chem-report,.chem-register{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
-.chem-form h3,.chem-report h3{margin:0 0 10px;font-size:16px}
-.chem-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.chem-fields label{font-size:11px;font-weight:900;color:#49645a}
-.chem-fields input,.chem-fields select{width:100%;margin-top:4px;border:1px solid #bfd2ca;border-radius:8px;padding:10px;background:#fff}
-.chem-fields .wide{grid-column:1/-1}
-.chem-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-.chem-btn{border:0;border-radius:8px;padding:10px 12px;font-weight:900;color:#fff}
-.chem-btn.save{background:#0a7a4b}.chem-btn.blue{background:#2d73c8}.chem-btn.red{background:#c52635}.chem-btn.gray{background:#60736b}
-.chem-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}
-.chem-card{border:1px solid var(--line);border-radius:9px;padding:9px;background:#f8fbfa}
-.chem-card b{display:block;font-size:18px;margin-top:3px}.chem-card span{font-size:10px;font-weight:900;color:var(--muted)}
-.chem-table-wrap{overflow:auto}.chem-table{width:100%;border-collapse:collapse;font-size:12px}.chem-table th,.chem-table td{border:1px solid #dbe6e1;padding:7px;white-space:nowrap}.chem-table th{background:#eaf4ef;font-weight:900}
-.chem-report-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
-.chem-month-filter{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.chem-month-filter select{padding:8px;border:1px solid #bfd2ca;border-radius:8px;font-weight:800}
-.chem-note{font-size:11px;color:var(--muted);margin-top:8px}
-@media(max-width:850px){.chem-grid{grid-template-columns:1fr}.chem-summary{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.chem-fields{grid-template-columns:1fr}.chem-summary{grid-template-columns:repeat(2,1fr)}}
-@media print{
- body.chem-printing *{visibility:hidden!important}
- body.chem-printing #chemicalPrintArea,body.chem-printing #chemicalPrintArea *{visibility:visible!important}
- body.chem-printing #chemicalPrintArea{position:absolute;left:0;top:0;width:100%;background:#fff;padding:12px}
-}
+<style id="chemical-register-final">
+.chemical-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:12px}.chemical-form{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.chemical-form label{font-size:11px;font-weight:900;color:#49645a}.chemical-form input,.chemical-form select{width:100%;padding:10px;border:1px solid #cbd9d3;border-radius:8px;background:#fff}.chemical-form .full{grid-column:1/-1}.chemical-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.chemical-actions button{border:0;border-radius:8px;padding:10px 13px;color:#fff;font-weight:900}.chem-save{background:#0a7a4b}.chem-blue{background:#2d73c8}.chem-orange{background:#c77a00}.chem-red{background:#c52635}.chem-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.chem-kpi{border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px;text-align:center}.chem-kpi b{display:block;font-size:20px;margin-top:4px}.chem-table{min-width:900px!important}.chem-report-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.chem-month{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.chem-month input{padding:8px;border:1px solid #cbd9d3;border-radius:7px}.chem-report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.chem-report-card{border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}.chem-report-card h4{margin:0 0 5px;font-size:11px}.chem-report-card strong{font-size:20px}.chem-note{background:#f1f7f4;border:1px solid #dbe9e3;border-radius:8px;padding:9px;font-size:11px;color:#49645a;margin-top:9px}
+@media(max-width:800px){.chemical-grid{grid-template-columns:1fr}.chem-report-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.chemical-form{grid-template-columns:1fr}.chem-report-grid{grid-template-columns:1fr}.chemical-form .full{grid-column:auto}.chemical-table{min-width:760px!important}}
 </style>
 </head>
 <body>
@@ -472,6 +450,7 @@ body.dashboard-open .final-quick-row{display:none!important}
     <button data-page="infested">🐞 Infested Stacks</button>
     <button data-page="priority">📋 Priority View (FIFO)</button>
     <button data-page="malathion">🧴 Malathion Spray</button>
+    <button data-page="chemical">🧪 Chemical Register</button>
     <div class="moisture-folder">
       <button type="button" class="moisture-folder-btn" onclick="toggleMoistureFolder()"><span>💧 Moisture</span><span id="moistureFolderArrow">▸</span></button>
       <div id="moistureSubnav" class="moisture-subnav">
@@ -482,7 +461,6 @@ body.dashboard-open .final-quick-row{display:none!important}
     </div>
     <button data-page="search">🔎 Stack Search</button>
     <button id="sheetBtn">📊 Google Sheet View</button>
-    <button data-page="chemical">🧪 Chemical Register</button>
     <button data-page="reports">📥 Reports & Download</button>
     <button data-page="calendar">📅 Treatment Calendar</button>
     <button data-page="notepad">📝 Today / Notepad</button>
@@ -1364,125 +1342,52 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 
-<script>
-/* ===== CHEMICAL REGISTER: ALP / DELTA + MONTHLY REPORT ===== */
+<script id="chemical-register-final-js">
 (function(){
-  const KEY='shambhuChemicalRegisterV1';
-  const sheds=['9','14','18','20'];
-  function chemData(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-  function saveChemData(a){localStorage.setItem(KEY,JSON.stringify(a))}
-  function ce(s){return (window.esc?esc(String(s??'')):String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])))}
-  function n(v){const x=parseFloat(v);return isFinite(x)?x:0}
-  function fmt(v){return n(v).toLocaleString('en-IN',{maximumFractionDigits:3})}
-  function isoToday(){const d=new Date();return d.toISOString().slice(0,10)}
-  function monthLabel(ym){if(!ym)return'All Months';const [y,m]=ym.split('-');return new Date(+y,+m-1,1).toLocaleString('en-IN',{month:'long',year:'numeric'})}
-  function chemRows(){return chemData().sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.id)-Number(a.id))}
-  function chemSummary(rows){
-    const aw=rows.filter(x=>x.commodity==='Wheat'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0);
-    const ar=rows.filter(x=>x.commodity==='Rice'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0);
-    const dw=rows.filter(x=>x.commodity==='Wheat'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0);
-    const dr=rows.filter(x=>x.commodity==='Rice'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0);
-    const alp=aw+ar, delta=dw+dr;
-    return `<div class="chem-summary">
-      <div class="chem-card"><span>🌾 WHEAT ALP USED</span><b>${fmt(aw)}</b></div>
-      <div class="chem-card"><span>🍚 RICE ALP USED</span><b>${fmt(ar)}</b></div>
-      <div class="chem-card"><span>🧪 TOTAL ALP USED</span><b>${fmt(alp)}</b></div>
-      <div class="chem-card"><span>🔷 TOTAL DELTA USED</span><b>${fmt(delta)}</b></div>
-    </div>`;
-  }
-  function chemRegisterTable(rows){
-    if(!rows.length)return '<div class="smallmuted">No chemical entries saved yet.</div>';
-    return `<div class="chem-table-wrap"><table class="chem-table"><thead><tr><th>Sr</th><th>Date</th><th>Shed</th><th>Stack</th><th>Commodity</th><th>Chemical</th><th>Qty</th><th>Unit</th><th>Remarks</th><th>Delete</th></tr></thead><tbody>${rows.map((x,i)=>`<tr><td>${i+1}</td><td>${ce(x.dateText||x.date)}</td><td>${ce(x.shed)}</td><td>${ce(x.stack||'—')}</td><td>${ce(x.commodity)}</td><td><b>${ce(x.chemical)}</b></td><td>${fmt(x.qty)}</td><td>${ce(x.unit)}</td><td>${ce(x.remarks||'')}</td><td><button class="pill" onclick="deleteChemical(${x.id})">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
-  }
-  function reportRows(rows){
-    const months={};
-    rows.forEach(x=>{const ym=String(x.date||'').slice(0,7);if(!ym)return;(months[ym]??=[]).push(x)});
-    const keys=Object.keys(months).sort().reverse();
-    let body='';
-    keys.forEach(ym=>{
-      const a=months[ym];
-      const w=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0);
-      const r=a.filter(x=>x.commodity==='Rice'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0);
-      const alp=w+r;
-      const dw=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0);
-      const dr=a.filter(x=>x.commodity==='Rice'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0);
-      body+=`<tr><td><b>${ce(monthLabel(ym))}</b></td><td>${fmt(w)}</td><td>${fmt(r)}</td><td><b>${fmt(alp)}</b></td><td>${fmt(dw)}</td><td>${fmt(dr)}</td><td><b>${fmt(dw+dr)}</b></td></tr>`;
-    });
-    return body||'<tr><td colspan="7" class="smallmuted">No monthly data.</td></tr>';
-  }
-  window.deleteChemical=function(id){if(!confirm('Delete this chemical entry?'))return;saveChemData(chemData().filter(x=>x.id!==id));renderChemicalPage()};
-  window.saveChemical=function(){
-    const g=id=>document.getElementById(id);
-    const date=g('chemDate').value, shedv=g('chemShed').value, stackv=g('chemStack').value.trim();
-    const commodity=g('chemCommodity').value, chemical=g('chemChemical').value, qty=n(g('chemQty').value), unit=g('chemUnit').value, remarks=g('chemRemarks').value.trim();
-    if(!date||!shedv||!commodity||!chemical||qty<=0){alert('Date, Shed, Commodity, Chemical aur Quantity bhariye.');return}
-    const d=new Date(date+'T00:00:00');
-    const row={id:Date.now(),date,dateText:d.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'}),shed:shedv,stack:stackv,commodity,chemical,qty,unit,remarks};
-    const a=chemData();a.push(row);saveChemData(a);
-    g('chemQty').value='';g('chemRemarks').value='';g('chemStack').value='';
-    renderChemicalPage();alert('Chemical entry saved.');
-  };
-  window.clearChemicalRegister=function(){if(!confirm('Delete ALL chemical register entries?'))return;localStorage.removeItem(KEY);renderChemicalPage()};
-  window.filterChemicalReport=function(){
-    const v=document.getElementById('chemReportMonth')?.value||'all';
-    const rows=chemData().filter(x=>v==='all'||String(x.date).slice(0,7)===v);
-    const area=document.getElementById('chemReportArea');if(!area)return;
-    area.innerHTML=chemSummary(rows)+`<div class="chem-table-wrap"><table class="chem-table"><thead><tr><th>Month</th><th>Wheat ALP</th><th>Rice ALP</th><th>Total ALP</th><th>Wheat Delta</th><th>Rice Delta</th><th>Total Delta</th></tr></thead><tbody>${reportRows(rows)}</tbody></table></div>`;
-  };
+  const CKEY='shambhuChemicalRegisterV1';
+  const escC=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const chemRead=()=>{try{return JSON.parse(localStorage.getItem(CKEY)||'[]')}catch(e){return[]}};
+  const chemWrite=a=>localStorage.setItem(CKEY,JSON.stringify(a));
+  const chemNum=v=>Number(String(v??'').replace(/,/g,''))||0;
+  const chemDate=d=>{if(!d)return'';const x=new Date(d);if(isNaN(x))return String(d);return x.toLocaleDateString('en-GB').replaceAll('/','.');};
   function chemicalPage(){
-    const rows=chemRows();
-    const months=[...new Set(chemData().map(x=>String(x.date).slice(0,7)).filter(Boolean))].sort().reverse();
-    const opts=months.map(m=>`<option value="${m}">${ce(monthLabel(m))}</option>`).join('');
-    return `<div class="chem-grid">
-      <div class="chem-form">
-        <div class="panelhead">🧪 CHEMICAL REGISTER — ENTRY</div>
-        <div class="chem-fields">
-          <label>Date<input id="chemDate" type="date" value="${isoToday()}"></label>
-          <label>Shed<select id="chemShed">${sheds.map(s=>`<option>${s}</option>`).join('')}</select></label>
-          <label>Stack No. (optional)<input id="chemStack" placeholder="e.g. 9/12"></label>
-          <label>Commodity<select id="chemCommodity"><option>Wheat</option><option>Rice</option></select></label>
-          <label>Chemical<select id="chemChemical"><option>ALP</option><option>Delta</option></select></label>
-          <label>Quantity<input id="chemQty" type="number" min="0" step="0.001" inputmode="decimal" placeholder="Enter quantity"></label>
-          <label>Unit<select id="chemUnit"><option>Kg</option><option>Litre</option><option>Nos</option></select></label>
-          <label class="wide">Remarks<input id="chemRemarks" placeholder="Optional remarks"></label>
+    const now=new Date(), ym=now.toISOString().slice(0,7), entries=chemRead();
+    return `<div class="panel"><div class="panelhead">🧪 CHEMICAL REGISTER</div>
+      <div class="chemical-grid">
+        <div><div class="panel" style="box-shadow:none;margin:0;padding:10px"><h3 style="margin:0 0 10px">New Chemical Entry</h3>
+          <div class="chemical-form">
+            <div><label>Date</label><input id="chemDate" type="date" value="${now.toISOString().slice(0,10)}"></div>
+            <div><label>Shed No.</label><select id="chemShed"><option>9</option><option>14</option><option>18</option><option>20</option></select></div>
+            <div><label>Commodity</label><select id="chemCommodity"><option>Wheat</option><option>Rice</option></select></div>
+            <div><label>Chemical</label><select id="chemName"><option>ALP</option><option>Delta</option></select></div>
+            <div><label>Stack No.</label><input id="chemStack" placeholder="e.g. 9/12"></div>
+            <div><label>Quantity</label><input id="chemQty" type="number" step="0.01" min="0" placeholder="0"></div>
+            <div><label>Unit</label><select id="chemUnit"><option>Kg</option><option>Tablets</option><option>Litre</option></select></div>
+            <div><label>Purpose / Treatment</label><input id="chemPurpose" placeholder="Fumigation / Spray"></div>
+            <div class="full"><label>Remarks</label><input id="chemRemarks" placeholder="Remarks"></div>
+          </div>
+          <div class="chemical-actions"><button class="chem-save" onclick="saveChemicalEntry()">💾 SAVE ENTRY</button><button class="chem-red" onclick="clearChemicalForm()">↺ CLEAR</button></div>
+        </div></div>
+        <div><div class="chem-report-head"><h3 style="margin:0">Chemical Consumption Report</h3><div class="chem-month"><label>Month</label><input id="chemMonth" type="month" value="${ym}" onchange="renderChemicalReport()"></div></div>
+          <div id="chemSummary"></div>
+          <div class="chemical-actions"><button class="chem-blue" onclick="viewChemicalReport()">👁 VIEW REPORT</button><button class="chem-orange" onclick="downloadChemicalExcel()">📊 EXCEL</button><button class="chem-red" onclick="downloadChemicalPDF()">📄 PDF</button></div>
         </div>
-        <div class="chem-actions"><button class="chem-btn save" onclick="saveChemical()">💾 Save Entry</button><button class="chem-btn red" onclick="clearChemicalRegister()">🗑 Clear All</button></div>
-        <div class="chem-note">Entries app ke local storage me save rahengi. Existing Master Stock / Moisture data ko change nahi karti.</div>
-      </div>
-      <div class="chem-report">
-        <div class="chem-report-head"><div class="panelhead">📊 CHEMICAL REPORT — MONTH WISE</div><div class="chem-actions" style="margin:0"><button class="chem-btn blue" onclick="viewChemicalPDF()">👁 View / PDF</button><button class="chem-btn save" onclick="downloadChemicalExcel()">📥 Excel</button></div></div>
-        <div class="chem-month-filter"><label><b>Month:</b> <select id="chemReportMonth" onchange="filterChemicalReport()"><option value="all">All Months</option>${opts}</select></label></div>
-        <div id="chemReportArea"></div>
       </div>
     </div>
-    <div class="chem-register" style="margin-top:12px"><div class="panelhead">📋 CHEMICAL REGISTER — ALL ENTRIES</div>${chemRegisterTable(rows)}</div>
-    <div id="chemicalPrintArea" style="display:none"></div>`;
+    <div class="panel"><div class="panelhead">📋 SAVED CHEMICAL ENTRIES</div><div class="tablewrap"><table class="chem-table"><thead><tr><th>Sr</th><th>Date</th><th>Shed</th><th>Stack</th><th>Commodity</th><th>Chemical</th><th>Qty</th><th>Unit</th><th>Purpose</th><th>Remarks</th><th>Action</th></tr></thead><tbody id="chemRows"></tbody></table></div><div class="chem-note">Entries इसी device/browser में सुरक्षित रहेंगी। Month-wise report में ALP और Delta का Wheat/Rice breakup तथा अब तक का total दिखेगा।</div></div>`;
   }
-  window.renderChemicalPage=function(){const d=document.getElementById('dynamicPage');if(!d)return;d.innerHTML=chemicalPage();filterChemicalReport()}
-  window.downloadChemicalExcel=async function(){
-    const rows=chemRows(), month=new Date().toLocaleString('en-IN',{month:'long',year:'numeric'});
-    const monthly={};
-    rows.forEach(x=>{const ym=String(x.date).slice(0,7);(monthly[ym]??=[]).push(x)});
-    const summary=[['SHED NO. 9, 14, 18 & 20'],['SHAMBHU SHED – FSD SABARMATI'],['CHEMICAL CONSUMPTION REGISTER / REPORT'],['Generated On',new Date().toLocaleString('en-IN')],[],['Month','Wheat ALP','Rice ALP','Total ALP','Wheat Delta','Rice Delta','Total Delta']];
-    Object.keys(monthly).sort().reverse().forEach(ym=>{
-      const a=monthly[ym],w=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0),r=a.filter(x=>x.commodity==='Rice'&&x.chemical==='ALP').reduce((s,x)=>s+n(x.qty),0),dw=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0),dr=a.filter(x=>x.commodity==='Rice'&&x.chemical==='Delta').reduce((s,x)=>s+n(x.qty),0);
-      summary.push([monthLabel(ym),w,r,w+r,dw,dr,dw+dr]);
-    });
-    const detail=[['SHED NO. 9, 14, 18 & 20'],['CHEMICAL REGISTER'],[],['Sr','Date','Shed','Stack','Commodity','Chemical','Quantity','Unit','Remarks'],...rows.map((x,i)=>[i+1,x.dateText,x.shed,x.stack,x.commodity,x.chemical,x.qty,x.unit,x.remarks||''])];
-    await makeWorkbook([{name:'Monthly Summary',data:summary,widths:[22,15,15,15,16,16,16]},{name:'Chemical Register',data:detail,widths:[8,14,10,14,14,14,14,10,30]}],`SHAMBHU_SHED_Chemical_Report_${month.replace(/\\s+/g,'_')}.xlsx`);
-  };
-  window.viewChemicalPDF=function(){
-    const rows=chemRows(), now=new Date(), month=now.toLocaleString('en-IN',{month:'long',year:'numeric'});
-    const print=document.getElementById('chemicalPrintArea');if(!print)return;
-    const monthly={};rows.forEach(x=>{const ym=String(x.date).slice(0,7);(monthly[ym]??=[]).push(x)});
-    let s=`<div style="font-family:Arial,sans-serif;color:#111"><div style="text-align:center"><div style="font-size:24px;font-weight:900">SHED NO. 9, 14, 18 & 20</div><div style="font-size:20px;font-weight:900">SHAMBHU SHED – FSD SABARMATI</div><div style="font-size:16px;font-weight:900;margin-top:6px">CHEMICAL CONSUMPTION REGISTER / REPORT</div><div style="font-size:12px;margin:5px 0 12px">Report Date: ${ce(now.toLocaleDateString('en-IN'))} · Current Month: ${ce(month)}</div></div>`;
-    s+=`<table style="width:100%;border-collapse:collapse;font-size:11px"><tr><th style="border:1px solid #111;padding:6px">Month</th><th style="border:1px solid #111;padding:6px">Wheat ALP</th><th style="border:1px solid #111;padding:6px">Rice ALP</th><th style="border:1px solid #111;padding:6px">Total ALP</th><th style="border:1px solid #111;padding:6px">Wheat Delta</th><th style="border:1px solid #111;padding:6px">Rice Delta</th><th style="border:1px solid #111;padding:6px">Total Delta</th></tr>`;
-    Object.keys(monthly).sort().reverse().forEach(ym=>{const a=monthly[ym],w=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='ALP').reduce((q,x)=>q+n(x.qty),0),r=a.filter(x=>x.commodity==='Rice'&&x.chemical==='ALP').reduce((q,x)=>q+n(x.qty),0),dw=a.filter(x=>x.commodity==='Wheat'&&x.chemical==='Delta').reduce((q,x)=>q+n(x.qty),0),dr=a.filter(x=>x.commodity==='Rice'&&x.chemical==='Delta').reduce((q,x)=>q+n(x.qty),0);s+=`<tr><td style="border:1px solid #111;padding:6px">${ce(monthLabel(ym))}</td><td style="border:1px solid #111;padding:6px">${fmt(w)}</td><td style="border:1px solid #111;padding:6px">${fmt(r)}</td><td style="border:1px solid #111;padding:6px"><b>${fmt(w+r)}</b></td><td style="border:1px solid #111;padding:6px">${fmt(dw)}</td><td style="border:1px solid #111;padding:6px">${fmt(dr)}</td><td style="border:1px solid #111;padding:6px"><b>${fmt(dw+dr)}</b></td></tr>`});
-    s+='</table><h3 style="margin:16px 0 7px">Chemical Register Details</h3><table style="width:100%;border-collapse:collapse;font-size:10px"><tr>'+['Sr','Date','Shed','Stack','Commodity','Chemical','Qty','Unit','Remarks'].map(h=>`<th style="border:1px solid #111;padding:5px">${h}</th>`).join('')+'</tr>'+rows.map((x,i)=>`<tr>${[i+1,x.dateText,x.shed,x.stack||'—',x.commodity,x.chemical,fmt(x.qty),x.unit,x.remarks||''].map(v=>`<td style="border:1px solid #111;padding:5px">${ce(v)}</td>`).join('')}</tr>`).join('')+'</table></div>';
-    print.innerHTML=s;print.style.display='block';document.body.classList.add('chem-printing');setTimeout(()=>{window.print();setTimeout(()=>{document.body.classList.remove('chem-printing');print.style.display='none'},500)},100);
-  };
+  function chemTableRows(){const a=chemRead().sort((x,y)=>String(y.date).localeCompare(String(x.date)));return a.length?a.map((x,i)=>`<tr><td>${i+1}</td><td>${chemDate(x.date)}</td><td>${escC(x.shed)}</td><td>${escC(x.stack)}</td><td>${escC(x.commodity)}</td><td><span class="badge ${x.chemical==='ALP'?'info':'soon'}">${escC(x.chemical)}</span></td><td>${chemNum(x.qty).toFixed(2)}</td><td>${escC(x.unit)}</td><td>${escC(x.purpose)}</td><td>${escC(x.remarks)}</td><td><button class="pill" onclick="deleteChemicalEntry('${String(x.id)}')">🗑 Delete</button></td></tr>`).join(''):'<tr><td colspan="11" class="empty">No chemical entries saved yet.</td></tr>';}
+  function reportData(){const a=chemRead(), m=document.getElementById('chemMonth')?.value || new Date().toISOString().slice(0,7);const mm=a.filter(x=>String(x.date||'').slice(0,7)===m);const total=a;const sum=(arr,c,chem)=>arr.filter(x=>(!c||x.commodity===c)&&(!chem||x.chemical===chem)).reduce((s,x)=>s+chemNum(x.qty),0);return {m,mm,total,wheatAlp:sum(mm,'Wheat','ALP'),riceAlp:sum(mm,'Rice','ALP'),wheatDelta:sum(mm,'Wheat','Delta'),riceDelta:sum(mm,'Rice','Delta'),allWheatAlp:sum(total,'Wheat','ALP'),allRiceAlp:sum(total,'Rice','ALP'),allWheatDelta:sum(total,'Wheat','Delta'),allRiceDelta:sum(total,'Rice','Delta')};}
+  window.renderChemicalReport=function(){const r=reportData(),box=document.getElementById('chemSummary');if(!box)return;box.innerHTML=`<div class="chem-report-grid"><div class="chem-report-card"><h4>WHEAT ALP — ${r.m}</h4><strong>${r.wheatAlp.toFixed(2)} Kg</strong></div><div class="chem-report-card"><h4>RICE ALP — ${r.m}</h4><strong>${r.riceAlp.toFixed(2)} Kg</strong></div><div class="chem-report-card"><h4>TOTAL ALP — ${r.m}</h4><strong>${(r.wheatAlp+r.riceAlp).toFixed(2)} Kg</strong></div><div class="chem-report-card"><h4>WHEAT DELTA — ${r.m}</h4><strong>${r.wheatDelta.toFixed(2)} Kg</strong></div><div class="chem-report-card"><h4>RICE DELTA — ${r.m}</h4><strong>${r.riceDelta.toFixed(2)} Kg</strong></div><div class="chem-report-card"><h4>TOTAL DELTA — ${r.m}</h4><strong>${(r.wheatDelta+r.riceDelta).toFixed(2)} Kg</strong></div></div><div class="chem-note"><b>ABHI TAK TOTAL:</b> Wheat ALP ${r.allWheatAlp.toFixed(2)} Kg · Rice ALP ${r.allRiceAlp.toFixed(2)} Kg · Total ALP ${(r.allWheatAlp+r.allRiceAlp).toFixed(2)} Kg · Wheat Delta ${r.allWheatDelta.toFixed(2)} Kg · Rice Delta ${r.allRiceDelta.toFixed(2)} Kg · Total Delta ${(r.allWheatDelta+r.allRiceDelta).toFixed(2)} Kg.</div>`;};
+  window.saveChemicalEntry=function(){const d=document.getElementById('chemDate')?.value,qty=chemNum(document.getElementById('chemQty')?.value);if(!d||qty<=0){alert('Date aur Quantity भरें.');return}const a=chemRead();a.push({id:Date.now(),date:d,shed:document.getElementById('chemShed').value,stack:document.getElementById('chemStack').value.trim(),commodity:document.getElementById('chemCommodity').value,chemical:document.getElementById('chemName').value,qty,unit:document.getElementById('chemUnit').value,purpose:document.getElementById('chemPurpose').value.trim(),remarks:document.getElementById('chemRemarks').value.trim()});chemWrite(a);document.getElementById('chemRows').innerHTML=chemTableRows();renderChemicalReport();alert('Chemical entry saved.');};
+  window.clearChemicalForm=function(){['chemStack','chemQty','chemPurpose','chemRemarks'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});};
+  window.deleteChemicalEntry=function(id){if(!confirm('Delete this chemical entry?'))return;chemWrite(chemRead().filter(x=>String(x.id)!==String(id)));const r=document.getElementById('chemRows');if(r)r.innerHTML=chemTableRows();renderChemicalReport();};
+  function reportHtml(){const r=reportData(),month=new Date(r.m+'-01T00:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'}), rows=r.mm.map((x,i)=>`<tr><td>${i+1}</td><td>${chemDate(x.date)}</td><td>${escC(x.shed)}</td><td>${escC(x.stack)}</td><td>${escC(x.commodity)}</td><td>${escC(x.chemical)}</td><td>${chemNum(x.qty).toFixed(2)}</td><td>${escC(x.unit)}</td><td>${escC(x.purpose)}</td><td>${escC(x.remarks)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Chemical Report</title><style>body{font-family:Arial;margin:28px;color:#172d25}h1{text-align:center;margin:0;font-size:24px}h2{text-align:center;margin:5px 0 18px;font-size:18px}table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #999;padding:7px}th{background:#073d2c;color:white}.sum{margin:14px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.card{border:1px solid #aaa;padding:10px}.card b{display:block;font-size:16px;margin-top:4px}</style></head><body><h1>SHED NO. 9 / 14 / 18 / 20</h1><h2>SHAMBHU SHED — FSD SABARMATI<br>CHEMICAL CONSUMPTION REPORT — ${month}</h2><div class="sum"><div class="card">Wheat ALP<b>${r.wheatAlp.toFixed(2)} Kg</b></div><div class="card">Rice ALP<b>${r.riceAlp.toFixed(2)} Kg</b></div><div class="card">Total ALP<b>${(r.wheatAlp+r.riceAlp).toFixed(2)} Kg</b></div><div class="card">Wheat Delta<b>${r.wheatDelta.toFixed(2)} Kg</b></div><div class="card">Rice Delta<b>${r.riceDelta.toFixed(2)} Kg</b></div><div class="card">Total Delta<b>${(r.wheatDelta+r.riceDelta).toFixed(2)} Kg</b></div></div><table><thead><tr><th>Sr</th><th>Date</th><th>Shed</th><th>Stack</th><th>Commodity</th><th>Chemical</th><th>Qty</th><th>Unit</th><th>Purpose</th><th>Remarks</th></tr></thead><tbody>${rows||'<tr><td colspan="10">No entries for this month.</td></tr>'}</tbody></table><p><b>Abhi tak:</b> Wheat ALP ${r.allWheatAlp.toFixed(2)} Kg | Rice ALP ${r.allRiceAlp.toFixed(2)} Kg | Total ALP ${(r.allWheatAlp+r.allRiceAlp).toFixed(2)} Kg | Wheat Delta ${r.allWheatDelta.toFixed(2)} Kg | Rice Delta ${r.allRiceDelta.toFixed(2)} Kg | Total Delta ${(r.allWheatDelta+r.allRiceDelta).toFixed(2)} Kg</p></body></html>`;}
+  window.viewChemicalReport=function(){const w=window.open('','_blank');if(!w){alert('Popup blocked. Allow popups for View Report.');return}w.document.write(reportHtml());w.document.close();};
+  window.downloadChemicalPDF=function(){const w=window.open('','_blank');if(!w){alert('Popup blocked.');return}w.document.write(reportHtml().replace('</body>','<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\\/script></body>'));w.document.close();};
+  window.downloadChemicalExcel=function(){const r=reportData(),html=reportHtml();const blob=new Blob([html],{type:'application/vnd.ms-excel'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SHAMBHU_SHED_Chemical_Report_'+r.m+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
   const oldRender=window.renderPage;
-  window.renderPage=function(page){if(page==='chemical'){renderChemicalPage();return}oldRender(page)}
+  window.renderPage=function(page){if(page==='chemical'){document.body.classList.remove('moisture-active');document.getElementById('dynamicPage').innerHTML=chemicalPage();document.getElementById('chemRows').innerHTML=chemTableRows();renderChemicalReport();return;}return oldRender(page);};
 })();
 </script>
 </body></html>
