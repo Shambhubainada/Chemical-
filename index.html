@@ -1565,12 +1565,22 @@ document.addEventListener('DOMContentLoaded',function(){
   function collectStackWeights(x){const out={};[...(x.wheatStacks||[]),...(x.riceStacks||[])].forEach(o=>{const k=String(o.stack||'').trim();if(k)out[k]=stackWeightValue(x,o);});return out;}
   function stackCommodityCell(x){
     const locked=!!x.__locked;
-    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);const dateArg=JSON.stringify(String(x.date||'')); const stackArg=JSON.stringify(k); return `<button type="button" class="stack-item stack-weight-toggle" title="Tap Stack Number to hide / unhide"><span onclick="event.preventDefault();event.stopPropagation();return window.toggleStackNumber(${dateArg},${stackArg},this)" title="Tap to hide / unhide Stack Number">${escC(stackNumberValue(x,o))}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><em class="stack-detail" data-weight-date="${escC(String(x.date||''))}" data-weight-stack="${escC(k)}" onclick="event.preventDefault();event.stopPropagation();return window.toggleStackWeight(${dateArg},${stackArg},this.parentElement)" title="Tap FEW / HEAVY to change">${wt}</em></button>`;}).join('')}</div></div>`:'';
+    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);const dateArg=JSON.stringify(String(x.date||'')); const stackArg=JSON.stringify(k); return `<button type="button" class="stack-item stack-weight-toggle" data-stack-date="${escC(String(x.date||''))}" data-stack-key="${escC(k)}" title="Tap FEW / HEAVY to change"><span class="stack-number-tap" data-stack-date="${escC(String(x.date||''))}" data-stack-key="${escC(k)}" title="Tap to hide / unhide Stack Number">${escC(stackNumberValue(x,o))}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><em class="stack-detail weight-tap" data-weight-date="${escC(String(x.date||''))}" data-weight-stack="${escC(k)}" title="Tap FEW / HEAVY to change">${wt}</em></button>`;}).join('')}</div></div>`:'';
     const w=fmt(x.wheatStacks||[],'wheat-stack'),r=fmt(x.riceStacks||[],'rice-stack');
     if(w||r)return `<div class="stack-commodity-cell" onclick="toggleChemicalStackDetails(event)">${w}${r}</div>`;
     return `<div class="stack-fallback">${escC(x.stackText||'')}<span class="stack-detail"><small>(${x.count||0} stack)</small></span></div>`;
   }
   window.toggleChemicalStackDetails=function(){ return false; };
+  // ALP stack tap handling: Stack Number and FEW/HEAVY are independent tap targets.
+  if(!window.__alpStackTapBound){
+    window.__alpStackTapBound=true;
+    document.addEventListener('click',function(ev){
+      const numEl=ev.target.closest&&ev.target.closest('.stack-number-tap');
+      if(numEl){ ev.preventDefault(); ev.stopPropagation(); window.toggleStackNumber(numEl.dataset.stackDate,numEl.dataset.stackKey,numEl); return; }
+      const wtEl=ev.target.closest&&ev.target.closest('.weight-tap');
+      if(wtEl){ ev.preventDefault(); ev.stopPropagation(); const holder=wtEl.closest('.stack-weight-toggle'); window.toggleStackWeight(wtEl.dataset.weightDate,wtEl.dataset.weightStack,holder); return; }
+    },true);
+  }
 
   function alpTableRows(){
     const a=alpAutoGroups(); let progressive=0;
