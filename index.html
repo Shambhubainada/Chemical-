@@ -1163,13 +1163,14 @@ const SHAMBHU_FIREBASE_CONFIG={
 /* Moisture Active is deliberately NOT synced as one large document.
    Each stack gets its own Firestore document so two phones can update
    different stacks without overwriting each other. */
-const SHAMBHU_SHARED_KEYS=['shambhuMoistureHistory','shambhuWorkNotes'];
+const SHAMBHU_SHARED_KEYS=['shambhuMoistureHistory','shambhuWorkNotes','shambhuALPEditingV1','shambhuALPOverridesV1','shambhuDeltaOverridesV1','shambhuChemicalRegisterV1','shambhuChemicalStackWeight_','shambhuMIRDataV1'];
 const SHAMBHU_CLIENT_ID=(()=>{let x=localStorage.getItem('shambhuSyncClientId');if(!x){x='c_'+Date.now()+'_'+Math.random().toString(36).slice(2);localStorage.setItem('shambhuSyncClientId',x)}return x})();
 let shambhuFirebaseReady=false,shambhuFirebaseBusy=false,shambhuSharedUnsub=null,shambhuMoistureUnsub=null;
 const shambhuPendingShared=new Map(),shambhuSharedRev=new Map(),shambhuMoistureRev=new Map();
 let shambhuKnownMoisture={};
 function shambhuDecode(v){if(typeof v!=='string')return {value:v,ts:0,client:''};try{const o=JSON.parse(v);if(o&&o.__shambhuSync>=2&&Object.prototype.hasOwnProperty.call(o,'value'))return o;}catch(e){}return {value:v,ts:0,client:''}}
 function shambhuEncode(value,ts){return JSON.stringify({__shambhuSync:3,value:value,ts:ts,client:SHAMBHU_CLIENT_ID})}
+function shambhuIsSharedKey(k){return SHAMBHU_SHARED_KEYS.includes(k)||String(k).startsWith('shambhuChemicalStackWeight_')}
 function shambhuRefreshUI(){try{if(typeof renderAll==='function')renderAll();if(typeof renderPage==='function'&&currentPage==='moisture')renderPage('moisture');}catch(e){console.warn(e)}}
 function shambhuFirebaseInit(){
   try{
@@ -1187,7 +1188,8 @@ function shambhuFirebaseInit(){
       if(sharedFirst){
         sharedFirst=false;
         const out={};
-        SHAMBHU_SHARED_KEYS.forEach(k=>{
+        const sharedKeys=[...new Set([...SHAMBHU_SHARED_KEYS,...Object.keys(remote).filter(k=>String(k).startsWith('shambhuChemicalStackWeight_')),...Object.keys(localStorage).filter(k=>String(k).startsWith('shambhuChemicalStackWeight_'))])];
+        sharedKeys.forEach(k=>{
           const rv=remote[k];
           if(rv!==undefined){const d=shambhuDecode(String(rv));shambhuSharedRev.set(k,d.ts||0);out[k]=d.value;}
           else {const lv=localStorage.getItem(k);if(lv!==null){const ts=Date.now();shambhuSharedRev.set(k,ts);shambhuPendingShared.set(k,{value:lv,ts});out[k]=lv;}}
@@ -1197,7 +1199,7 @@ function shambhuFirebaseInit(){
         return;
       }
       shambhuFirebaseBusy=true;
-      try{SHAMBHU_SHARED_KEYS.forEach(k=>{if(remote[k]===undefined)return;const d=shambhuDecode(String(remote[k])),lr=shambhuSharedRev.get(k)||0,p=shambhuPendingShared.get(k);if(p&&d.ts<p.ts)return;if(d.ts&&d.ts<lr)return;if(d.value===null)localStorage.removeItem(k);else localStorage.setItem(k,String(d.value));shambhuSharedRev.set(k,d.ts||Date.now());if(p&&d.ts>=p.ts)shambhuPendingShared.delete(k)});shambhuRefreshUI();}
+      try{[...new Set([...SHAMBHU_SHARED_KEYS,...Object.keys(remote).filter(k=>String(k).startsWith('shambhuChemicalStackWeight_'))])].forEach(k=>{if(remote[k]===undefined)return;const d=shambhuDecode(String(remote[k])),lr=shambhuSharedRev.get(k)||0,p=shambhuPendingShared.get(k);if(p&&d.ts<p.ts)return;if(d.ts&&d.ts<lr)return;if(d.value===null)localStorage.removeItem(k);else localStorage.setItem(k,String(d.value));shambhuSharedRev.set(k,d.ts||Date.now());if(p&&d.ts>=p.ts)shambhuPendingShared.delete(k)});shambhuRefreshUI();}
       finally{shambhuFirebaseBusy=false}
     },e=>console.warn('Firebase shared listener:',e));
 
@@ -1229,10 +1231,10 @@ function shambhuFirebaseInit(){
       }
     },e=>console.warn('Firebase moisture listener:',e));
 
-    window.shambhuFirebaseSyncNow=()=>{SHAMBHU_SHARED_KEYS.forEach(k=>shambhuFirebasePushShared(k,localStorage.getItem(k)));const a=JSON.parse(localStorage.getItem('shambhuMoistureActive')||'{}');Object.keys(a).forEach(st=>shambhuFirebasePushMoistureStack(st,a[st]))};
+    window.shambhuFirebaseSyncNow=()=>{[...new Set([...SHAMBHU_SHARED_KEYS,...Object.keys(localStorage).filter(k=>String(k).startsWith('shambhuChemicalStackWeight_'))])].forEach(k=>shambhuFirebasePushShared(k,localStorage.getItem(k)));const a=JSON.parse(localStorage.getItem('shambhuMoistureActive')||'{}');Object.keys(a).forEach(st=>shambhuFirebasePushMoistureStack(st,a[st]))};
   }catch(e){console.warn('Firebase init failed:',e)}
 }
-async function shambhuFirebasePushShared(key,value){if(!shambhuFirebaseReady||!SHAMBHU_SHARED_KEYS.includes(key))return;const ts=Date.now();shambhuSharedRev.set(key,ts);shambhuPendingShared.set(key,{value,ts});try{const data={};data[key]=shambhuEncode(value,ts);await shambhuDB.collection('shambhuSync').doc('shared').set(data,{merge:true});const p=shambhuPendingShared.get(key);if(p&&p.ts===ts)shambhuPendingShared.delete(key)}catch(e){console.warn('Firebase shared write failed:',e)}}
+async function shambhuFirebasePushShared(key,value){if(!shambhuFirebaseReady||!shambhuIsSharedKey(key))return;const ts=Date.now();shambhuSharedRev.set(key,ts);shambhuPendingShared.set(key,{value,ts});try{const data={};data[key]=shambhuEncode(value,ts);await shambhuDB.collection('shambhuSync').doc('shared').set(data,{merge:true});const p=shambhuPendingShared.get(key);if(p&&p.ts===ts)shambhuPendingShared.delete(key)}catch(e){console.warn('Firebase shared write failed:',e)}}
 async function shambhuFirebasePushMoistureStack(stack,record){if(!shambhuFirebaseReady||!stack)return;const id='stack_'+String(stack);const ts=Date.now();shambhuMoistureRev.set(id,ts);shambhuMoistureRev.set(id+'_pending',ts);try{await shambhuDB.collection('shambhuMoistureStacks').doc(id).set({record:JSON.stringify(record),ts,client:SHAMBHU_CLIENT_ID,deleted:false},{merge:true});if(shambhuMoistureRev.get(id+'_pending')===ts)shambhuMoistureRev.delete(id+'_pending')}catch(e){console.warn('Firebase moisture stack write failed:',e)}}
 async function shambhuFirebaseDeleteMoistureStack(stack){if(!shambhuFirebaseReady||!stack)return;const id='stack_'+String(stack),ts=Date.now();shambhuMoistureRev.set(id,ts);shambhuMoistureRev.set(id+'_pending',ts);try{await shambhuDB.collection('shambhuMoistureStacks').doc(id).set({record:null,ts,client:SHAMBHU_CLIENT_ID,deleted:true},{merge:true})}catch(e){console.warn('Firebase moisture stack delete failed:',e)}}
 (function installFirebaseStorageSync(){
@@ -1247,11 +1249,11 @@ async function shambhuFirebaseDeleteMoistureStack(stack){if(!shambhuFirebaseRead
       return;
     }
     origSet.call(this,k,v);
-    if(this===localStorage&&!shambhuFirebaseBusy&&SHAMBHU_SHARED_KEYS.includes(k))shambhuFirebasePushShared(k,String(v));
+    if(this===localStorage&&!shambhuFirebaseBusy&&shambhuIsSharedKey(k))shambhuFirebasePushShared(k,String(v));
   };
   Storage.prototype.removeItem=function(k){
     if(this===localStorage&&k==='shambhuMoistureActive'&&!shambhuFirebaseBusy){const before=shambhuKnownMoisture||{};origRemove.call(this,k);Object.keys(before).forEach(st=>shambhuFirebaseDeleteMoistureStack(st));shambhuKnownMoisture={};return}
-    origRemove.call(this,k);if(this===localStorage&&!shambhuFirebaseBusy&&SHAMBHU_SHARED_KEYS.includes(k))shambhuFirebasePushShared(k,null);
+    origRemove.call(this,k);if(this===localStorage&&!shambhuFirebaseBusy&&shambhuIsSharedKey(k))shambhuFirebasePushShared(k,null);
   };
   window.addEventListener('load',()=>setTimeout(shambhuFirebaseInit,300));
 })();
