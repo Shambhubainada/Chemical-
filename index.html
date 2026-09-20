@@ -1415,11 +1415,11 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function stackWeightKey(x,o){return 'shambhuChemicalStackWeight_'+String(x.date||'')+'_'+String(o.stack||'').trim();}
   function stackWeightValue(x,o){let v='FEW';try{const m=JSON.parse(localStorage.getItem(stackWeightKey(x,o))||'"FEW"');if(m==='HEAVY')v='HEAVY';}catch(e){}return v;}
-  window.toggleStackWeight=function(date,stack,btn){const key='shambhuChemicalStackWeight_'+String(date||'')+'_'+String(stack||'').trim();let v='FEW';try{v=JSON.parse(localStorage.getItem(key)||'"FEW"')}catch(e){}v=v==='HEAVY'?'FEW':'HEAVY';localStorage.setItem(key,JSON.stringify(v));if(btn){const em=btn.querySelector('em');if(em)em.textContent=v;btn.setAttribute('aria-label',v);btn.classList.toggle('weight-heavy',v==='HEAVY');btn.classList.add('weight-flash');setTimeout(()=>btn.classList.remove('weight-flash'),180);return false;}return false;};
+  window.toggleStackWeight=function(date,stack,btn){const key='shambhuChemicalStackWeight_'+String(date||'')+'_'+String(stack||'').trim();let v='FEW';try{v=JSON.parse(localStorage.getItem(key)||'"FEW"')}catch(e){}v=v==='HEAVY'?'FEW':'HEAVY';localStorage.setItem(key,JSON.stringify(v));if(btn){const em=btn.querySelector('em');if(em)em.textContent=v;btn.setAttribute('aria-label',v);btn.classList.toggle('weight-heavy',v==='HEAVY');btn.classList.add('weight-flash');setTimeout(()=>btn.classList.remove('weight-flash'),180);}return false;};
   function collectStackWeights(x){const out={};[...(x.wheatStacks||[]),...(x.riceStacks||[])].forEach(o=>{const k=String(o.stack||'').trim();if(k)out[k]=stackWeightValue(x,o);});return out;}
   function stackCommodityCell(x){
-    const locked=!!x.__locked;
-    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);const click=locked?'':`onclick="event.preventDefault();event.stopPropagation();return toggleStackWeight(${JSON.stringify(String(x.date||''))},${JSON.stringify(k)},this)" onpointerup="event.preventDefault();event.stopPropagation();return toggleStackWeight(${JSON.stringify(String(x.date||''))},${JSON.stringify(k)},this)"`;return `<button type="button" class="stack-item stack-weight-toggle" ${click} title="${locked?'Saved row — edit to change':'Tap FEW / HEAVY to change'}"><span>${escC(k)}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><em class="stack-detail">${wt}</em></button>`;}).join('')}</div></div>`:'';
+    let locked=false; try{const ovs=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}'); locked=!!ovs[String(x.date||'')]?.locked;}catch(e){locked=false;}
+    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);const click=locked?'':`onclick="event.preventDefault();event.stopPropagation();return toggleStackWeight(${JSON.stringify(String(x.date||''))},${JSON.stringify(k)},this)"`;return `<button type="button" class="stack-item stack-weight-toggle" ${click} title="${locked?'Saved row — edit to change':'Tap FEW / HEAVY to change'}"><span>${escC(k)}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><em class="stack-detail">${wt}</em></button>`;}).join('')}</div></div>`:'';
     const w=fmt(x.wheatStacks||[],'wheat-stack'),r=fmt(x.riceStacks||[],'rice-stack');
     if(w||r)return `<div class="stack-commodity-cell" onclick="toggleChemicalStackDetails(event)">${w}${r}</div>`;
     return `<div class="stack-fallback" onclick="toggleChemicalStackDetails(event)">${escC(x.stackText||'')}<span class="stack-detail"><small>(${x.count||0} stack)</small></span></div>`;
@@ -1653,8 +1653,30 @@ document.addEventListener('DOMContentLoaded',function(){
   window.viewChemicalReport=function(){const w=window.open('','_blank');if(!w){alert('Popup blocked. Allow popups for View Report.');return}w.document.write(activeChemicalFolder==='ALP'?alpReportHtml():activeChemicalFolder==='Delta'?deltaReportHtml():activeChemicalFolder==='Malathion'?malathionReportHtml():reportHtml());w.document.close();};
   window.downloadChemicalPDF=function(){const w=window.open('','_blank');if(!w){alert('Popup blocked.');return}w.document.write((activeChemicalFolder==='ALP'?alpReportHtml():activeChemicalFolder==='Delta'?deltaReportHtml():activeChemicalFolder==='Malathion'?malathionReportHtml():reportHtml()).replace('</body>','<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\\/script></body>'));w.document.close();};
   window.downloadChemicalExcel=function(){const r=reportData(),html=activeChemicalFolder==='ALP'?alpReportHtml():activeChemicalFolder==='Delta'?deltaReportHtml():activeChemicalFolder==='Malathion'?malathionReportHtml():reportHtml();const blob=new Blob([html],{type:'application/vnd.ms-excel'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SHAMBHU_SHED_Chemical_Report_'+r.m+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+  // Chemical folder navigation: keep ALP, Delta and Malathion independently accessible.
+  window.openChemicalFolder=function(name){
+    name=String(name||'');
+    if(!['ALP','Delta','Malathion'].includes(name)) return;
+    activeChemicalFolder=name;
+    localStorage.setItem('shambhuChemicalFolder',name);
+    const dp=document.getElementById('dynamicPage');
+    if(dp){
+      dp.innerHTML=chemicalPage();
+      const r=document.getElementById('chemRows');
+      if(r && (name==='ALP'||name==='Delta')) r.innerHTML=chemTableRows();
+      if(typeof restoreChemicalReportState==='function') restoreChemicalReportState();
+      renderChemicalReport();
+    }
+  };
+  window.openChemicalFolders=function(){
+    activeChemicalFolder='';
+    localStorage.removeItem('shambhuChemicalFolder');
+    const dp=document.getElementById('dynamicPage');
+    if(dp) dp.innerHTML=chemicalFolderPage();
+  };
+
   const oldRender=window.renderPage;
-  window.renderPage=function(page){if(page==='chemical'){document.body.classList.remove('moisture-active');document.getElementById('dynamicPage').innerHTML=chemicalPage();const r=document.getElementById('chemRows');if(r)r.innerHTML=chemTableRows();restoreChemicalReportState();renderChemicalReport();return;}return oldRender(page);};
+  window.renderPage=function(page){if(page==='chemical'){document.body.classList.remove('moisture-active');document.getElementById('dynamicPage').innerHTML=chemicalPage();const r=document.getElementById('chemRows');if(r && (activeChemicalFolder==='ALP'||activeChemicalFolder==='Delta'))r.innerHTML=chemTableRows();if(typeof restoreChemicalReportState==='function')restoreChemicalReportState();renderChemicalReport();return;}return oldRender(page);};
 })();
 </script>
 </body></html>
