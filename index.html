@@ -1391,26 +1391,26 @@ document.addEventListener('DOMContentLoaded',function(){
       if(!d)return;
       const key=String(d);
       if(!groups[key])groups[key]={date:key,stacks:[],wheatStacks:[],riceStacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
-      const g=groups[key], st=String(stack(r)||'').trim();
-      const q=qty(r);
-      if(st){g.stacks.push(st); const so={stack:st,mt:q}; if(isWheat(r))g.wheatStacks.push(so); else if(isRice(r))g.riceStacks.push(so);} g.mt+=q;
-      if(isWheat(r)){g.wheat++;g.wheatMt+=q;} else if(isRice(r)){g.rice++;g.riceMt+=q;}
+      const g=groups[key], st=String(stack(r)||'').trim(), q=qty(r);
+      if(st){g.stacks.push(st); const so={stack:st,mt:q}; if(isWheat(r))g.wheatStacks.push(so); else if(isRice(r))g.riceStacks.push(so);}
+      g.mt+=q; if(isWheat(r)){g.wheat++;g.wheatMt+=q;} else if(isRice(r)){g.rice++;g.riceMt+=q;}
     });
     let overrides={}; try{overrides=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){overrides={}};
-    // Include locked snapshots even when their Under Cover rows no longer exist.
     Object.keys(overrides).forEach(k=>{
-      const ov=overrides[k]; if(!ov || !ov.locked || groups[k])return;
-      groups[k]={date:k,stacks:[],wheatStacks:[],riceStacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
+      const ov=overrides[k]; if(!ov || !ov.locked)return;
+      if(!groups[k])groups[k]={date:k,stacks:[],wheatStacks:[],riceStacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
     });
-    return Object.values(groups).map(g=>{
-      const ov=overrides[g.date];
-      const locked=!!ov?.locked;
+    return Object.keys(groups).map(k=>{
+      const g=groups[k], ov=overrides[k], locked=!!ov?.locked;
       if(locked){
-        return {...g,...ov,__key:g.date,wheatStacks:Array.isArray(ov.wheatStacks)?ov.wheatStacks:g.wheatStacks,riceStacks:Array.isArray(ov.riceStacks)?ov.riceStacks:g.riceStacks,stackWeights:ov.stackWeights||{},mt:chemNum(ov.mt),consumption:chemNum(ov.consumption),stackText:String(ov.stackText??''),count:Number(ov.count??0),wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),wheatMt:chemNum(ov.wheatMt),riceMt:chemNum(ov.riceMt),progressive:chemNum(ov.progressive)};
+        return {...g,...ov,__key:k,__locked:true,date:String(ov.date||k),sourceDate:k,
+          wheatStacks:Array.isArray(ov.wheatStacks)?ov.wheatStacks:g.wheatStacks,
+          riceStacks:Array.isArray(ov.riceStacks)?ov.riceStacks:g.riceStacks,stackWeights:ov.stackWeights||{},
+          mt:chemNum(ov.mt),consumption:chemNum(ov.consumption),stackText:String(ov.stackText??''),count:Number(ov.count??0),
+          wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),wheatMt:chemNum(ov.wheatMt),riceMt:chemNum(ov.riceMt),progressive:chemNum(ov.progressive)};
       }
-      const mt=ov?.mt!=null?chemNum(ov.mt):g.mt;
-      const cons=ov?.consumption!=null?chemNum(ov.consumption):mt*0.009;
-      return {...g, ...(ov||{}), __key:g.date, mt, consumption:cons, stackText:ov?.stackText!=null?ov.stackText:g.stacks.join(', '), count:g.stacks.length};
+      const mt=ov?.mt!=null?chemNum(ov.mt):g.mt, cons=ov?.consumption!=null?chemNum(ov.consumption):mt*0.009;
+      return {...g,...(ov||{}),__key:k,__locked:false,date:k,sourceDate:k,mt,consumption:cons,stackText:ov?.stackText!=null?ov.stackText:g.stacks.join(', '),count:g.stacks.length};
     }).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   }
   function stackWeightKey(x,o){return 'shambhuChemicalStackWeight_'+String(x.date||'')+'_'+String(o.stack||'').trim();}
@@ -1435,13 +1435,13 @@ document.addEventListener('DOMContentLoaded',function(){
     let overrides={}; try{overrides=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}
     let editing={}; try{editing=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){}
     return a.length?a.map((x,i)=>{
-      const isLocked=!!overrides[x.date]?.locked && !editing[x.date];
+      const rowKey=String(x.__key||x.date), isLocked=!!overrides[rowKey]?.locked && !editing[rowKey];
       if(isLocked) progressive=chemNum(x.progressive);
       else progressive+=chemNum(x.consumption);
       const treatment=`<div class="treatment-qty"><span><b>Wheat</b><strong>${Math.round(x.wheatMt||0)}</strong></span><i></i><span><b>Rice</b><strong>${Math.round(x.riceMt||0)}</strong></span></div>`;
       let action='';
-      if(isLocked){ action=`<div class="chem-action-group"><span class="alp-lock-badge">🔒 Locked</span><button class="pill chem-edit-btn" onclick="editALPAuto('${escC(x.__key||x.date)}')">✏️ Edit</button><button class="pill chem-delete-btn" onclick="deleteALPAuto('${escC(x.__key||x.date)}')">🗑 Delete</button></div>`; }
-      else { action=`<div class="chem-action-group"><button class="pill chem-save-btn" onclick="saveALPAuto('${escC(x.__key||x.date)}')">💾 Save</button></div>`; }
+      if(isLocked){ action=`<div class="chem-action-group"><span class="alp-lock-badge">🔒 Locked</span><button class="pill chem-edit-btn" onclick="editALPAuto('${escC(rowKey)}')">✏️ Edit</button><button class="pill chem-delete-btn" onclick="deleteALPAuto('${escC(rowKey)}')">🗑 Delete</button></div>`; }
+      else { action=`<div class="chem-action-group"><button class="pill chem-save-btn" onclick="saveALPAuto('${escC(rowKey)}')">💾 Save</button></div>`; }
       return `<tr class="${isLocked?'alp-row-locked':''}" data-alp-date="${escC(x.date)}"><td>${i+1}</td><td>${chemDate(x.date)}</td><td class="stack-number-cell">${stackCommodityCell(x)}</td><td>${Math.round(x.mt)}</td><td>${chemNum(x.consumption).toFixed(3)} kg</td><td><b>${progressive.toFixed(3)} kg</b></td><td>${treatment}</td><td>${action}</td></tr>`;
     }).join(''):'<tr><td colspan="8" class="empty">No Under Cover stacks found.</td></tr>';
   }
@@ -1449,17 +1449,20 @@ document.addEventListener('DOMContentLoaded',function(){
   function deltaAutoGroups(){
     const groups={};
     rows.filter(r=>qty(r)>0 && val(r,'Fumigation Date')).forEach(r=>{
-      const fum=String(val(r,'Fumigation Date')).trim(), entry=deltaDateText(fum); if(!entry)return;
-      if(!groups[entry])groups[entry]={date:entry,fumDate:fum,stacks:[],wheat:0,rice:0};
-      const g=groups[entry], st=String(stack(r)||'').trim();
-      if(st && !g.stacks.includes(st))g.stacks.push(st);
+      const fum=String(val(r,'Fumigation Date')).trim(), key=deltaDateText(fum); if(!key)return;
+      if(!groups[key])groups[key]={date:key,fumDate:fum,stacks:[],wheat:0,rice:0};
+      const g=groups[key], st=String(stack(r)||'').trim(); if(st&&!g.stacks.includes(st))g.stacks.push(st);
       if(isWheat(r))g.wheat++; else if(isRice(r))g.rice++;
     });
     let overrides={};try{overrides=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){overrides={}};
-    Object.keys(overrides).forEach(k=>{const ov=overrides[k];if(!ov||!ov.locked||groups[k])groups[k]={date:k,fumDate:ov?.fumDate||'',stacks:[],wheat:0,rice:0};});
-    return Object.values(groups).map(g=>{const ov=overrides[g.date];if(ov?.locked)return {...g,...ov,__key:g.date,stackText:String(ov.stackText??''),count:Number(ov.count??0),wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),consumption:chemNum(ov.consumption),locked:true};return {...g,...(ov||{}),__key:g.date,stackText:ov?.stackText!=null?ov.stackText:g.stacks.join(', '),count:g.stacks.length,wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:g.stacks.length*0.650,locked:false};}).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    Object.keys(overrides).forEach(k=>{const ov=overrides[k];if(ov?.locked&&!groups[k])groups[k]={date:k,fumDate:ov.fumDate||'',stacks:[],wheat:0,rice:0};});
+    return Object.keys(groups).map(k=>{
+      const g=groups[k],ov=overrides[k];
+      if(ov?.locked)return {...g,...ov,__key:k,date:String(ov.date||k),sourceDate:k,stackText:String(ov.stackText??''),count:Number(ov.count??0),wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),consumption:chemNum(ov.consumption),locked:true};
+      return {...g,__key:k,date:k,sourceDate:k,stackText:g.stacks.join(', '),count:g.stacks.length,wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:g.stacks.length*0.650,locked:false};
+    }).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   }
-  function deltaTableRows(){const a=deltaAutoGroups();let progressive=0;let overrides={};try{overrides=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){};return a.length?a.map((x,i)=>{const isLocked=!!overrides[x.date]?.locked;progressive+=chemNum(x.consumption);const action=isLocked?`<div class="chem-action-group"><span class="alp-lock-badge">🔒 Locked</span><button class="pill chem-edit-btn" onclick="editDeltaAuto('${escC(x.__key||x.date)}')">✏️ Edit</button><button class="pill chem-delete-btn" onclick="deleteDeltaAuto('${escC(x.__key||x.date)}')">🗑 Delete</button></div>`:`<div class="chem-action-group"><button class="pill chem-save-btn" onclick="saveDeltaAuto('${escC(x.__key||x.date)}')">💾 Save</button></div>`;return `<tr class="${isLocked?'alp-row-locked':''}"><td>${i+1}</td><td>${chemDate(x.date)}</td><td>${escC(x.stackText)} <span class="smallmuted">(${x.count} stack)</span></td><td>${chemNum(x.consumption).toFixed(3)} kg</td><td><b>${progressive.toFixed(3)} kg</b></td><td>${x.wheat} Wheat / ${x.rice} Rice</td><td>${action}</td></tr>`;}).join(''):'<tr><td colspan="7" class="empty">No fumigated stacks found.</td></tr>';}
+  function deltaTableRows(){const a=deltaAutoGroups();let progressive=0;let overrides={};try{overrides=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){};return a.length?a.map((x,i)=>{const rowKey=String(x.__key||x.date),isLocked=!!overrides[rowKey]?.locked;progressive+=chemNum(x.consumption);const action=isLocked?`<div class="chem-action-group"><span class="alp-lock-badge">🔒 Locked</span><button class="pill chem-edit-btn" onclick="editDeltaAuto('${escC(rowKey)}')">✏️ Edit</button><button class="pill chem-delete-btn" onclick="deleteDeltaAuto('${escC(rowKey)}')">🗑 Delete</button></div>`:`<div class="chem-action-group"><button class="pill chem-save-btn" onclick="saveDeltaAuto('${escC(rowKey)}')">💾 Save</button></div>`;return `<tr class="${isLocked?'alp-row-locked':''}"><td>${i+1}</td><td>${chemDate(x.date)}</td><td>${escC(x.stackText)} <span class="smallmuted">(${x.count} stack)</span></td><td>${chemNum(x.consumption).toFixed(3)} kg</td><td><b>${progressive.toFixed(3)} kg</b></td><td>${x.wheat} Wheat / ${x.rice} Rice</td><td>${action}</td></tr>`;}).join(''):'<tr><td colspan="7" class="empty">No fumigated stacks found.</td></tr>';}
   function malathionEntries(){
     return normalizeMalathionRecords().filter(x=>x.chemical==='Malathion').sort((a,b)=>String(a.date).localeCompare(String(b.date))||Number(a.id)-Number(b.id));
   }
@@ -1642,36 +1645,29 @@ document.addEventListener('DOMContentLoaded',function(){
     renderChemicalReport();
   };
   window.saveALPAuto=function(dateKey){
-    const g=alpAutoGroups().find(x=>String(x.date)===String(dateKey)); if(!g)return;
+    const g=alpAutoGroups().find(x=>String(x.__key||x.date)===String(dateKey)); if(!g)return;
     let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}
     let prior=0; alpAutoGroups().forEach(z=>{if(String(z.date)<String(g.date)) prior+=chemNum(z.consumption);});
-    o[g.date]={...(o[g.date]||{}),mt:chemNum(g.mt),consumption:chemNum(g.mt)*0.009,stackText:g.stackText,wheatMt:chemNum(g.wheatMt),riceMt:chemNum(g.riceMt),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:collectStackWeights(g),progressive:prior+chemNum(g.mt)*0.009,locked:true};
+    o[dateKey]={...(o[dateKey]||{}),date:g.date,mt:chemNum(g.mt),consumption:chemNum(g.consumption??g.mt*0.009),stackText:g.stackText,wheatMt:chemNum(g.wheatMt),riceMt:chemNum(g.riceMt),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:collectStackWeights(g),progressive:prior+chemNum(g.consumption??g.mt*0.009),locked:true};
     localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
-    let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[g.date]; localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));
-    refreshALPRegister();
+    let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[dateKey]; localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed)); refreshALPRegister();
   };
-  window.editALPAuto=function(dateKey){const pin=prompt('Edit ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}
-    const g=alpAutoGroups().find(x=>String(x.date)===String(dateKey)); if(!g)return;
-    let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} ed[g.date]=true;localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));
-    const mt=prompt('Total Qty (MT)',Math.round(g.mt)); if(mt===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
-    const cons=prompt('Consumption (kg) — default Total MT × 0.009',g.consumption.toFixed(3)); if(cons===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
-    const wm=prompt('Wheat Treatment Qty (MT)',Math.round(g.wheatMt||0)); if(wm===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
-    const rm=prompt('Rice Treatment Qty (MT)',Math.round(g.riceMt||0)); if(rm===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
-    const newDate=prompt('Date (YYYY-MM-DD)',String(g.date||'').slice(0,10)); if(newDate===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;} if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('Date format YYYY-MM-DD me enter karein.');delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
-    const stacks=prompt('Stack Number(s)',g.stackText); if(stacks===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
+  window.editALPAuto=function(dateKey){const pin=prompt('Edit ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}const g=alpAutoGroups().find(x=>String(x.__key||x.date)===String(dateKey));if(!g)return;
+    const mt=prompt('Total Qty (MT)',Math.round(g.mt)); if(mt===null)return;
+    const cons=prompt('Consumption (kg) — default Total MT × 0.009',chemNum(g.consumption).toFixed(3)); if(cons===null)return;
+    const wm=prompt('Wheat Treatment Qty (MT)',Math.round(g.wheatMt||0)); if(wm===null)return;
+    const rm=prompt('Rice Treatment Qty (MT)',Math.round(g.riceMt||0)); if(rm===null)return;
+    const newDate=prompt('Date (YYYY-MM-DD)',String(g.date||'').slice(0,10)); if(newDate===null)return; if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('Date format YYYY-MM-DD me enter karein.');return;}
+    const stacks=prompt('Stack Number(s)',g.stackText); if(stacks===null)return;
     let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}
     let prior=0; alpAutoGroups().forEach(z=>{if(String(z.date)<String(g.date)) prior+=chemNum(z.consumption);});
-    o[g.date]={...(o[g.date]||{}),date:newDate,mt:Math.round(chemNum(mt)),consumption:chemNum(cons),stackText:stacks,wheatMt:Math.round(chemNum(wm)),riceMt:Math.round(chemNum(rm)),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:g.stackWeights||collectStackWeights(g),progressive:prior+chemNum(cons),locked:true};localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
-    refreshALPRegister();
+    o[dateKey]={...(o[dateKey]||{}),date:newDate,mt:Math.round(chemNum(mt)),consumption:chemNum(cons),stackText:stacks,wheatMt:Math.round(chemNum(wm)),riceMt:Math.round(chemNum(rm)),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:g.stackWeights||collectStackWeights(g),progressive:prior+chemNum(cons),locked:true};
+    localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
+    let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[dateKey]; localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed)); refreshALPRegister();
   };
-  window.deleteALPAuto=function(dateKey){const pin=prompt('Delete ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}
-    if(!confirm('Delete saved ALP register entry? Automatic Under Cover data will remain available.'))return;
-    let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){} delete o[dateKey];localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
-    let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[dateKey];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));
-    refreshALPRegister();
-  };
-  window.saveDeltaAuto=function(dateKey){const g=deltaAutoGroups().find(x=>x.date===dateKey);if(!g)return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){}o[g.date]={date:g.date,fumDate:g.fumDate,stackText:g.stackText,count:Number(g.count||0),wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:chemNum(g.count)*0.650,locked:true};localStorage.setItem('shambhuDeltaOverridesV1',JSON.stringify(o));const r=document.getElementById('chemRows');if(r)r.innerHTML=deltaTableRows();renderChemicalReport();};
-  window.editDeltaAuto=function(dateKey){const pin=prompt('Edit ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}const g=deltaAutoGroups().find(x=>String(x.__key||x.date)===String(dateKey));if(!g)return;const newDate=prompt('Date (YYYY-MM-DD)',String(g.date||'').slice(0,10));if(newDate===null)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('Date format YYYY-MM-DD me enter karein.');return;}const stacks=prompt('Stack Number(s)',g.stackText);if(stacks===null)return;const count=prompt('Number of stacks',g.count);if(count===null)return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){}const n=Math.max(0,Math.round(chemNum(count)));o[g.__key||g.date]={date:newDate,fumDate:g.fumDate,stackText:stacks,count:n,wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:n*0.650,locked:true};localStorage.setItem('shambhuDeltaOverridesV1',JSON.stringify(o));const r=document.getElementById('chemRows');if(r)r.innerHTML=deltaTableRows();renderChemicalReport();};
+  window.deleteALPAuto=function(dateKey){const pin=prompt('Delete ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}if(!confirm('Delete saved ALP register entry? Automatic Under Cover data will remain available.'))return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){} delete o[dateKey];localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[dateKey];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));refreshALPRegister();};
+  window.saveDeltaAuto=function(dateKey){const g=deltaAutoGroups().find(x=>String(x.__key||x.date)===String(dateKey));if(!g)return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){}o[dateKey]={date:g.date,fumDate:g.fumDate,stackText:g.stackText,count:Number(g.count||0),wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:chemNum(g.count)*0.650,locked:true};localStorage.setItem('shambhuDeltaOverridesV1',JSON.stringify(o));const r=document.getElementById('chemRows');if(r)r.innerHTML=deltaTableRows();renderChemicalReport();};
+  window.editDeltaAuto=function(dateKey){const pin=prompt('Edit ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}const g=deltaAutoGroups().find(x=>String(x.__key||x.date)===String(dateKey));if(!g)return;const newDate=prompt('Date (YYYY-MM-DD)',String(g.date||'').slice(0,10));if(newDate===null)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)){alert('Date format YYYY-MM-DD me enter karein.');return;}const stacks=prompt('Stack Number(s)',g.stackText);if(stacks===null)return;const count=prompt('Number of stacks',g.count);if(count===null)return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){}const n=Math.max(0,Math.round(chemNum(count)));o[dateKey]={date:newDate,fumDate:g.fumDate,stackText:stacks,count:n,wheat:Number(g.wheat||0),rice:Number(g.rice||0),consumption:n*0.650,locked:true};localStorage.setItem('shambhuDeltaOverridesV1',JSON.stringify(o));const r=document.getElementById('chemRows');if(r)r.innerHTML=deltaTableRows();renderChemicalReport();};
   window.deleteDeltaAuto=function(dateKey){const pin=prompt('Delete ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}if(!confirm('Delete saved Delta register entry? Automatic fumigation data will remain available.'))return;let o={};try{o=JSON.parse(localStorage.getItem('shambhuDeltaOverridesV1')||'{}')}catch(e){}delete o[dateKey];localStorage.setItem('shambhuDeltaOverridesV1',JSON.stringify(o));const r=document.getElementById('chemRows');if(r)r.innerHTML=deltaTableRows();renderChemicalReport();};
   window.saveChemicalEntry=function(){
     const d=document.getElementById('chemDate')?.value, qty=chemNum(document.getElementById('chemQty')?.value), stack=document.getElementById('chemStack')?.value.trim();
