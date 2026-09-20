@@ -1415,11 +1415,28 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function stackWeightKey(x,o){return 'shambhuChemicalStackWeight_'+String(x.date||'')+'_'+String(o.stack||'').trim();}
   function stackWeightValue(x,o){let v='FEW';try{const m=JSON.parse(localStorage.getItem(stackWeightKey(x,o))||'"FEW"');if(m==='HEAVY')v='HEAVY';}catch(e){}return v;}
-  window.toggleStackWeight=function(date,stack,btn){const d=String(date||''),k=String(stack||'').trim();if(!d||!k)return false;const key='shambhuChemicalStackWeight_'+d+'_'+k;let v='FEW';try{v=JSON.parse(localStorage.getItem(key)||'"FEW"')}catch(e){}v=v==='HEAVY'?'FEW':'HEAVY';localStorage.setItem(key,JSON.stringify(v));let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}if(o[d]&&o[d].locked){o[d].stackWeights=o[d].stackWeights||{};o[d].stackWeights[k]=v;localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));}if(btn){const em=btn.querySelector('em');if(em)em.textContent=v;btn.setAttribute('aria-label',v);btn.classList.toggle('weight-heavy',v==='HEAVY');btn.classList.add('weight-flash');setTimeout(()=>btn.classList.remove('weight-flash'),180);}return false;};
+  window.toggleStackWeight=function(date,stack,btn){
+    const d=String(date||'').trim(),k=String(stack||'').trim(); if(!d||!k)return false;
+    const key='shambhuChemicalStackWeight_'+d+'_'+k;
+    let v='FEW'; try{v=JSON.parse(localStorage.getItem(key)||'\"FEW\"')}catch(e){v='FEW';}
+    v=v==='HEAVY'?'FEW':'HEAVY';
+    localStorage.setItem(key,JSON.stringify(v));
+    let o={}; try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){o={};}
+    if(o[d]&&o[d].locked){o[d].stackWeights=o[d].stackWeights||{};o[d].stackWeights[k]=v;localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));}
+    if(btn){const em=btn.querySelector('em');if(em)em.textContent=v;btn.classList.toggle('weight-heavy',v==='HEAVY');btn.setAttribute('aria-label',v);}
+    return false;
+  };
+  document.addEventListener('click',function(e){
+    const b=e.target.closest&&e.target.closest('.stack-weight-toggle');
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();
+    window.toggleStackWeight(b.getAttribute('data-weight-date'),b.getAttribute('data-weight-stack'),b);
+  },true);
+
   function collectStackWeights(x){const out={};[...(x.wheatStacks||[]),...(x.riceStacks||[])].forEach(o=>{const k=String(o.stack||'').trim();if(k)out[k]=stackWeightValue(x,o);});return out;}
   function stackCommodityCell(x){
     const locked=!!x.__locked;
-    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);const click=`onclick="event.preventDefault();event.stopPropagation();return toggleStackWeight(${JSON.stringify(String(x.date||''))},${JSON.stringify(k)},this)"`;return `<button type="button" class="stack-item stack-weight-toggle" ${click} title="Tap FEW / HEAVY to change"><span>${escC(k)}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><em class="stack-detail">${wt}</em></button>`;}).join('')}</div></div>`:'';
+    const fmt=(arr,cls)=>arr.length?`<div class="stack-commodity-block ${cls}"><div class="stack-items stack-compact-items">${arr.map(o=>{const k=String(o.stack||'').trim();const wt=(locked&&x.stackWeights&&x.stackWeights[k])||stackWeightValue(x,o);return `<div class="stack-item stack-weight-wrap"><span class="stack-name">${escC(k)}</span><small class="stack-detail">(${Math.round(chemNum(o.mt))} MT)</small><button type="button" class="stack-weight-toggle ${wt==='HEAVY'?'weight-heavy':''}" data-weight-date="${escC(String(x.date||''))}" data-weight-stack="${escC(k)}" title="Tap to change FEW / HEAVY"><em>${wt}</em></button></div>`;}).join('')}</div></div>`:'';
     const w=fmt(x.wheatStacks||[],'wheat-stack'),r=fmt(x.riceStacks||[],'rice-stack');
     if(w||r)return `<div class="stack-commodity-cell" onclick="toggleChemicalStackDetails(event)">${w}${r}</div>`;
     return `<div class="stack-fallback" onclick="toggleChemicalStackDetails(event)">${escC(x.stackText||'')}<span class="stack-detail"><small>(${x.count||0} stack)</small></span></div>`;
@@ -1470,7 +1487,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const a=malathionEntries(); let progressive=0;
     return a.length?a.map((x,i)=>{
       const ss=malEntryStacks(x), qty=ss.reduce((n,v)=>n+Math.round(chemNum(v.qty)),0);
-      const cons=chemNum(x.consumption)!=null&&x.consumption!==''?chemNum(x.consumption):ss.length*0.061;
+      const cons=ss.length*0.061;
       progressive+=cons;
       const groups={Wheat:[],Rice:[]}; ss.forEach(v=>(groups[v.commodity==='Wheat'?'Wheat':'Rice']).push(v));
       const stackHtml=['Wheat','Rice'].map(c=>groups[c].length?`<div class="mal-stack-group ${c==='Wheat'?'mal-wheat':'mal-rice'}"><b>${c}</b><span>${groups[c].map(v=>escC(v.stack)).join(', ')}</span></div>`:'').join('');
@@ -1509,7 +1526,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const selected=existing?malEntryStacks(existing):[];
     const today=new Date(); const ds=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
     const modal=document.createElement('div'); modal.id='malathionEntryModal'; modal.className='modal show';
-    modal.innerHTML=`<div class="modalbox malathion-entry-box"><div class="modalhead"><h3 style="margin:0">${existing?'✏️ EDIT MALATHION ENTRY':'➕ ADD NEW MALATHION ENTRY'}</h3><button class="close" onclick="closeMalathionEntry()">✕</button></div><div class="malathion-entry-form"><label>Date<input id="malEntryDate" type="date" value="${String(existing?.date||ds).slice(0,10)}"></label><div class="mal-stack-label">Stack Number <span class="smallmuted">Select one or more — Wheat/Rice both allowed</span></div><div id="malStackList" class="mal-stack-list"></div><div class="mal-entry-summary"><div>Total Qty: <b id="malEntryQtyTotal">0 MT</b></div><div>Consumption: <b id="malEntryConsumption">0.000 Ltr</b></div></div></div><div class="chemical-actions malathion-entry-actions"><button class="chem-save" onclick="saveMalathionEntry('${editId||''}')">💾 ${existing?'UPDATE ENTRY':'SAVE ENTRY'}</button></div></div>`;
+    modal.innerHTML=`<div class="modalbox malathion-entry-box"><div class="modalhead"><h3 style="margin:0">${existing?'✏️ EDIT MALATHION ENTRY':'➕ ADD NEW MALATHION ENTRY'}</h3><button class="close" onclick="closeMalathionEntry()">✕</button></div><div class="malathion-entry-form"><label>Date<input id="malEntryDate" type="date" value="${String(existing?.date||ds).slice(0,10)}"></label><div class="mal-stack-label">Stack Number <span class="smallmuted">Select one or more — Wheat/Rice both allowed</span></div><div id="malStackList" class="mal-stack-list"></div><div class="mal-entry-summary"><div>Total Qty: <b id="malEntryQtyTotal">0 MT</b></div><div>Consumption: <b id="malEntryConsumption">0.000 Ltr</b></div></div></div><div class="chemical-actions malathion-entry-actions"><button type="button" class="chem-save" onclick="return saveMalathionEntry('${editId||''}')">💾 ${existing?'UPDATE ENTRY':'SAVE ENTRY'}</button></div></div>`;
     document.body.appendChild(modal); renderMalathionSelection(selected);
   };
   window.closeMalathionEntry=function(){const m=document.getElementById('malathionEntryModal');if(m)m.remove();};
