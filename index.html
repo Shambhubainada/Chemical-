@@ -1811,7 +1811,7 @@ window.downloadChemicalRegisterPDF=function(folder){
 </body>'));w.document.close();};
   window.downloadChemicalExcel=function(){const r=reportData(),html=activeChemicalFolder==='ALP'?alpReportHtml():activeChemicalFolder==='Delta'?deltaReportHtml():activeChemicalFolder==='Malathion'?malathionReportHtml():reportHtml();const blob=new Blob([html],{type:'application/vnd.ms-excel'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SHAMBHU_SHED_Chemical_Report_'+r.m+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
   const oldRender=window.renderPage;
-  window.renderPage=function(page){if(page==='chemical'){document.body.classList.remove('moisture-active');document.getElementById('dynamicPage').innerHTML=chemicalPage();const r=document.getElementById('chemRows');if(r)r.innerHTML=chemTableRows();restoreChemicalReportState();renderChemicalReport();return;}return oldRender(page);};
+  window.renderPage=function(page){if(page==='chemical'){document.body.classList.remove('moisture-active');activeChemicalFolder='';localStorage.removeItem('shambhuChemicalFolder');document.getElementById('dynamicPage').innerHTML=chemicalPage();return;}return oldRender(page);};
 })();
 </script>
 
