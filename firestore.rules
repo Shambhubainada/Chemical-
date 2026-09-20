@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Shared app data
+    match /shambhuSync/{doc} {
+      allow read, write: if true;
+    }
+
+    // Moisture data
+    match /shambhuMoistureStacks/{doc} {
+      allow read, write: if true;
+    }
+
+    match /shambhuMoistureEntries/{doc} {
+      allow read, write: if true;
+    }
+
+    // Device permission / Master Phone control used by the app
+    match /shambhuAccessRequests/{doc} {
+      allow read, write: if true;
+    }
+
+    match /shambhuAccess/{doc=**} {
+      allow read, write: if true;
+    }
+  }
+}
