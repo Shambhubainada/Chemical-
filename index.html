@@ -1416,7 +1416,6 @@ document.addEventListener('DOMContentLoaded',function(){
   function stackWeightKey(x,o){return 'shambhuChemicalStackWeight_'+String(x.date||'')+'_'+String(o.stack||'').trim();}
   function stackWeightValue(x,o){let v='FEW';try{const m=JSON.parse(localStorage.getItem(stackWeightKey(x,o))||'"FEW"');if(m==='HEAVY')v='HEAVY';}catch(e){}return v;}
   window.toggleStackWeight=function(date,stack,btn){const d=String(date||''),k=String(stack||'').trim();if(!d||!k)return false;const key='shambhuChemicalStackWeight_'+d+'_'+k;let v='FEW';try{v=JSON.parse(localStorage.getItem(key)||'"FEW"')}catch(e){}v=v==='HEAVY'?'FEW':'HEAVY';localStorage.setItem(key,JSON.stringify(v));let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}if(o[d]&&o[d].locked){o[d].stackWeights=o[d].stackWeights||{};o[d].stackWeights[k]=v;localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));}if(btn){const em=btn.querySelector('em');if(em)em.textContent=v;btn.setAttribute('aria-label',v);btn.classList.toggle('weight-heavy',v==='HEAVY');btn.classList.add('weight-flash');setTimeout(()=>btn.classList.remove('weight-flash'),180);}return false;};
-  document.addEventListener('click',function(e){const btn=e.target&&e.target.closest?e.target.closest('.stack-weight-toggle'):null;if(!btn)return;e.preventDefault();e.stopPropagation();toggleStackWeight(btn.dataset.weightDate,btn.dataset.weightStack,btn);},true);
   function collectStackWeights(x){const out={};[...(x.wheatStacks||[]),...(x.riceStacks||[])].forEach(o=>{const k=String(o.stack||'').trim();if(k)out[k]=stackWeightValue(x,o);});return out;}
   function stackCommodityCell(x){
     const locked=!!x.__locked;
@@ -1503,11 +1502,12 @@ document.addEventListener('DOMContentLoaded',function(){
     const a=malathionSelectedValues(), total=a.reduce((s,x)=>s+Math.round(Number(x.qty||0)),0), autoCons=a.length*0.061;
     const q=document.getElementById('malEntryQtyTotal'), c=document.getElementById('malEntryConsumption'), input=document.getElementById('malEntryConsumptionInput');
     if(q)q.textContent=`${total} MT`;
-    if(input && !input.dataset.manual) input.value=autoCons.toFixed(3);
+    if(input){ input.value=autoCons.toFixed(3); input.readOnly=true; input.dataset.manual=''; }
     if(c)c.textContent=`${autoCons.toFixed(3)} Ltr (${a.length} stack${a.length===1?'':'s'} × 0.061)`;
   }
   window.markMalathionManualConsumption=function(){
-    const input=document.getElementById('malEntryConsumptionInput'); if(input)input.dataset.manual='1';
+    const input=document.getElementById('malEntryConsumptionInput'); if(input){input.value=(malathionSelectedValues().length*0.061).toFixed(3);input.readOnly=true;}
+    updateMalathionEntryPreview();
   };
   window.openMalathionEntry=function(editId){
     const old=document.getElementById('malathionEntryModal'); if(old)old.remove();
@@ -1518,7 +1518,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const savedCons=existing&&chemNum(existing.consumption)!=null?chemNum(existing.consumption):0;
     modal.innerHTML=`<div class="modalbox malathion-entry-box"><div class="modalhead"><div><h3 style="margin:0">${existing?'✏️ EDIT MALATHION ENTRY':'➕ ADD NEW MALATHION ENTRY'}</h3><div id="malLockStatus" class="mal-lock-status">🔓 Unlocked / Editing</div></div><button class="close" onclick="closeMalathionEntry()">✕</button></div><div class="malathion-entry-form"><label>Date<input id="malEntryDate" type="date" value="${String(existing?.date||ds).slice(0,10)}"></label><div class="mal-stack-label">Stack Number <span class="smallmuted">Select one or more — Wheat/Rice both allowed</span></div><div id="malStackList" class="mal-stack-list"></div><div class="mal-entry-summary"><div>Total Qty: <b id="malEntryQtyTotal">0 MT</b></div><div>Consumption: <input id="malEntryConsumptionInput" class="mal-consumption-input" type="number" min="0" step="0.001" value="${existing?savedCons.toFixed(3):'0.000'}" oninput="markMalathionManualConsumption()"> <span>Ltr</span><small class="smallmuted">Auto = selected stacks × 0.061 Ltr; manual value also allowed</small></div><div id="malEntryConsumption" class="smallmuted"></div></div></div><div class="chemical-actions malathion-entry-actions"><button class="chem-save" onclick="saveMalathionEntry('${editId||''}')">💾 ${existing?'UPDATE & LOCK':'SAVE & LOCK'}</button></div></div>`;
     document.body.appendChild(modal); renderMalathionSelection(selected);
-    if(existing){const input=document.getElementById('malEntryConsumptionInput');if(input){input.value=savedCons.toFixed(3);input.dataset.manual='1';}}
+    if(existing){const input=document.getElementById('malEntryConsumptionInput');if(input){input.readOnly=true;input.value=(malEntryStacks(existing).length*0.061).toFixed(3);}}
   };
   window.closeMalathionEntry=function(){const m=document.getElementById('malathionEntryModal');if(m)m.remove();};
   window.toggleMalathionCommodity=function(){};
@@ -1527,7 +1527,7 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!d){alert('Date select karein.');return false;} if(!stacks.length){alert('Kam se kam 1 stack select karein.');return false;}
     const clean=stacks.map(x=>({stack:String(x.stack||'').trim(),commodity:x.commodity==='Wheat'?'Wheat':'Rice',qty:Math.round(Number(x.qty)||0)})).filter(x=>x.stack);
     if(!clean.length){alert('Kam se kam 1 valid stack select karein.');return false;}
-    const totalQty=clean.reduce((s,x)=>s+x.qty,0), autoCons=clean.length*0.061, input=document.getElementById('malEntryConsumptionInput'), entered=input?Number(input.value):NaN, cons=Number.isFinite(entered)&&entered>=0?entered:autoCons;
+    const totalQty=clean.reduce((s,x)=>s+x.qty,0), cons=clean.length*0.061;
     let a=chemRead(); if(!Array.isArray(a))a=[];
     const record={id:editId?Number(editId):Date.now(),chemical:'Malathion',date:d,stacks:clean,stack:clean.map(x=>x.stack).join(', '),commodity:clean.every(x=>x.commodity==='Wheat')?'Wheat':clean.every(x=>x.commodity==='Rice')?'Rice':'Wheat + Rice',qty:totalQty,unit:'MT',consumption:cons,remarks:'',locked:true};
     if(editId){const ix=a.findIndex(v=>String(v.id)===String(editId));if(ix<0){alert('Entry not found.');return false;}a[ix]=record;}else a.push(record);
