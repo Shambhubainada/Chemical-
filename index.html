@@ -1377,23 +1377,23 @@ document.addEventListener('DOMContentLoaded',function(){
       const d=val(r,'Fumigation Date','FumigationDate','Cover Date','Under Cover Date') || '';
       if(!d)return;
       const key=String(d);
-      if(!groups[key])groups[key]={date:key,stacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
+      if(!groups[key])groups[key]={date:key,stacks:[],wheatStacks:[],riceStacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
       const g=groups[key], st=String(stack(r)||'').trim();
-      if(st)g.stacks.push(st);
-      const q=qty(r); g.mt+=q;
+      const q=qty(r);
+      if(st){g.stacks.push(st); const so={stack:st,mt:q}; if(isWheat(r))g.wheatStacks.push(so); else if(isRice(r))g.riceStacks.push(so);} g.mt+=q;
       if(isWheat(r)){g.wheat++;g.wheatMt+=q;} else if(isRice(r)){g.rice++;g.riceMt+=q;}
     });
     let overrides={}; try{overrides=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){overrides={}};
     // Include locked snapshots even when their Under Cover rows no longer exist.
     Object.keys(overrides).forEach(k=>{
       const ov=overrides[k]; if(!ov || !ov.locked || groups[k])return;
-      groups[k]={date:k,stacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
+      groups[k]={date:k,stacks:[],wheatStacks:[],riceStacks:[],mt:0,wheat:0,rice:0,wheatMt:0,riceMt:0};
     });
     return Object.values(groups).map(g=>{
       const ov=overrides[g.date];
       const locked=!!ov?.locked;
       if(locked){
-        return {...g,...ov,mt:chemNum(ov.mt),consumption:chemNum(ov.consumption),stackText:String(ov.stackText??''),count:Number(ov.count??0),wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),wheatMt:chemNum(ov.wheatMt),riceMt:chemNum(ov.riceMt),progressive:chemNum(ov.progressive)};
+        return {...g,...ov,wheatStacks:Array.isArray(ov.wheatStacks)?ov.wheatStacks:g.wheatStacks,riceStacks:Array.isArray(ov.riceStacks)?ov.riceStacks:g.riceStacks,stackWeights:ov.stackWeights||{},mt:chemNum(ov.mt),consumption:chemNum(ov.consumption),stackText:String(ov.stackText??''),count:Number(ov.count??0),wheat:Number(ov.wheat??0),rice:Number(ov.rice??0),wheatMt:chemNum(ov.wheatMt),riceMt:chemNum(ov.riceMt),progressive:chemNum(ov.progressive)};
       }
       const mt=ov?.mt!=null?chemNum(ov.mt):g.mt;
       const cons=ov?.consumption!=null?chemNum(ov.consumption):mt*0.009;
@@ -1526,7 +1526,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const g=alpAutoGroups().find(x=>String(x.date)===String(dateKey)); if(!g)return;
     let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}
     let prior=0; alpAutoGroups().forEach(z=>{if(String(z.date)<String(g.date)) prior+=chemNum(z.consumption);});
-    o[g.date]={...(o[g.date]||{}),mt:chemNum(g.mt),consumption:chemNum(g.mt)*0.009,stackText:g.stackText,wheatMt:chemNum(g.wheatMt),riceMt:chemNum(g.riceMt),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),progressive:prior+chemNum(g.mt)*0.009,locked:true};
+    o[g.date]={...(o[g.date]||{}),mt:chemNum(g.mt),consumption:chemNum(g.mt)*0.009,stackText:g.stackText,wheatMt:chemNum(g.wheatMt),riceMt:chemNum(g.riceMt),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:collectStackWeights(g),progressive:prior+chemNum(g.mt)*0.009,locked:true};
     localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
     let ed={};try{ed=JSON.parse(localStorage.getItem('shambhuALPEditingV1')||'{}')}catch(e){} delete ed[g.date]; localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));
     refreshALPRegister();
@@ -1541,7 +1541,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const stacks=prompt('Stack Number(s)',g.stackText); if(stacks===null){delete ed[g.date];localStorage.setItem('shambhuALPEditingV1',JSON.stringify(ed));return;}
     let o={};try{o=JSON.parse(localStorage.getItem('shambhuALPOverridesV1')||'{}')}catch(e){}
     let prior=0; alpAutoGroups().forEach(z=>{if(String(z.date)<String(g.date)) prior+=chemNum(z.consumption);});
-    o[g.date]={mt:Math.round(chemNum(mt)),consumption:chemNum(cons),stackText:stacks,wheatMt:Math.round(chemNum(wm)),riceMt:Math.round(chemNum(rm)),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),progressive:prior+chemNum(cons),locked:true};localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
+    o[g.date]={...(o[g.date]||{}),mt:Math.round(chemNum(mt)),consumption:chemNum(cons),stackText:stacks,wheatMt:Math.round(chemNum(wm)),riceMt:Math.round(chemNum(rm)),wheat:Number(g.wheat||0),rice:Number(g.rice||0),count:Number(g.count||0),wheatStacks:g.wheatStacks||[],riceStacks:g.riceStacks||[],stackWeights:g.stackWeights||collectStackWeights(g),progressive:prior+chemNum(cons),locked:true};localStorage.setItem('shambhuALPOverridesV1',JSON.stringify(o));
     refreshALPRegister();
   };
   window.deleteALPAuto=function(dateKey){const pin=prompt('Delete ke liye PIN enter karein:');if(pin===null||String(pin)!==String(getSitePin())){if(pin!==null)alert('Wrong PIN.');return;}
@@ -1670,3 +1670,5 @@ window.downloadChemicalRegisterPDF=function(folder){
 .filters{position:relative;padding-right:108px;align-items:flex-end}.filter-select-group{min-width:145px}.filter-select{width:100%;box-sizing:border-box;padding:7px 28px 7px 9px;border:1px solid #cbd9d3;border-radius:8px;background:#fff;color:#17332b;font-weight:800;font-size:12px;min-height:34px}.filters>.refresh{position:absolute;right:0;top:0;margin:0!important;padding:5px 8px!important;font-size:10px!important;line-height:1.1;border-radius:7px;min-height:26px}.home-pending-wrap{margin-top:14px}.home-pending-wrap .work-alert{margin:0!important;padding:0!important;border:1px solid #e3a018!important;border-left:4px solid #d92d3b!important;border-radius:9px!important;background:#fffaf0!important;display:none!important;overflow:hidden}.home-pending-wrap .work-alert.show{display:block!important;animation:none!important}.pending-summary-row{width:100%;border:0;background:transparent;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px;color:#17332b;cursor:pointer}.pending-summary-row>span:first-child{flex:1}.pending-total{white-space:nowrap}.pending-total>b{display:inline-flex;min-width:24px;height:24px;padding:0 6px;align-items:center;justify-content:center;border-radius:999px;background:#d92d3b;color:#fff;font-size:12px;animation:pendingCountBlink 1s infinite}.pending-chevron{font-size:15px;font-weight:900}.pending-home-details{display:none;padding:0 10px 10px}.pending-home-details.show{display:block}.pending-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #f0d69a;padding-top:9px;font-size:11px}.pending-detail-grid ul{margin:5px 0 0;padding-left:17px}.pending-detail-grid li{margin:3px 0;font-weight:700}@keyframes pendingCountBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(1.06)}}
 @media(max-width:700px){.filters{padding-right:88px;gap:7px}.filter-select-group{min-width:0;flex:1}.filter-select{font-size:11px;padding:7px 22px 7px 7px}.filters>.refresh{font-size:9px!important;padding:4px 6px!important}.pending-detail-grid{grid-template-columns:1fr}.pending-summary-row{font-size:11px;padding:8px 9px}.pending-total>b{min-width:22px;height:22px;font-size:11px}}
 </style>
+
+<style id="chemical-stack-final-colors">.stack-commodity-block.wheat-stack{background:#fffaf0;border-radius:6px;padding:3px 4px}.stack-commodity-block.rice-stack{background:#f3f9ff;border-radius:6px;padding:3px 4px}.stack-commodity-block.wheat-stack .stack-commodity-title{color:#9a6500}.stack-commodity-block.rice-stack .stack-commodity-title{color:#246a9d}.stack-commodity-block+.stack-commodity-block{border-top:2px solid #9baaa3!important;margin-top:3px}.stack-item em{font-size:9px!important}</style>
